@@ -1,0 +1,23 @@
+name: Store Log Data
+on:
+  repository_dispatch:
+    types: [log-event]
+
+jobs:
+  store-log:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Append Log Data
+        run: |
+          mkdir -p logs
+          echo '${{ toJson(github.event.client_payload) }}' >> logs/$(date +%Y-%m-%d).json
+      - name: Commit Changes
+        run: |
+          git config user.name "Log Bot"
+          git config user.email "bot@example.com"
+          git add logs/*
+          git commit -m "Add log data for $(date +%Y-%m-%d)" || echo "No changes to commit"
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.LOG_TOKEN }}
