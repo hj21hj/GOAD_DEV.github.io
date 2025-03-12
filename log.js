@@ -1,16 +1,17 @@
 async function logVisit() {
   const logData = {
-    timestamp: new Date().toISOString(), // 방문 시간
-    url: window.location.href, // 방문한 URL
-    referrer: document.referrer || "direct", // 어디서 왔는지
-    userAgent: navigator.userAgent, // 브라우저 정보
+    timestamp: new Date().toISOString(),
+    url: window.location.href,
+    referrer: document.referrer || "direct",
+    userAgent: navigator.userAgent,
   };
 
   try {
-    await fetch("https://api.github.com/repos/hj21hj/log-storage/dispatches", {
+    // GitHub API로 dispatch 이벤트만 트리거
+    // 토큰은 클라이언트에서 제거
+    await fetch("https://api.github.com/repos/hj21hj/GOAD_DEV.github.io/dispatches", {
       method: "POST",
       headers: {
-        "Authorization": "Bearer YOUR_PERSONAL_ACCESS_TOKEN", // 2단계에서 생성한 토큰
         "Content-Type": "application/json",
         "Accept": "application/vnd.github+json",
       },
