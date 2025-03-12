@@ -1,0 +1,777 @@
+<DOCUMENT>
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>정부광고<sup style="font-size: 0.5em;">DEV_광고지표 계산기</sup></title>
+
+    <!-- Google Analytics GA4 코드 -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-DZN77QMBX7"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-DZN77QMBX7');
+    </script>
+
+    <!-- Developed by HJ -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+        .container { text-align: center; }
+        h1 {
+            color: #333;
+            cursor: pointer;
+        }
+        h1 sup {
+            font-size: 0.5em;
+        }
+        .input-group {
+            margin-bottom: 15px;
+            text-align: left;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+        input, select {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+        button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #mediaInputs {
+            margin-top: 20px;
+        }
+        .media-section {
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin-bottom: 20px;
+            background-color: #fff;
+            border-radius: 4px;
+        }
+        .metric-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .metric-row select {
+            width: 40%;
+            margin-right: 10px;
+        }
+        .metric-row input {
+            width: 50%;
+        }
+        .metric-row .remove-btn {
+            width: 10%;
+            background-color: #ff6347;
+            padding: 5px;
+            margin-left: 10px;
+        }
+        .metric-row .remove-btn:hover {
+            background-color: #ff4500;
+        }
+        .metric-row .remove-btn:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        #results {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            text-align: left;
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size: 0.9em;
+        }
+        th, td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: center;
+            white-space: nowrap;
+            position: relative;
+        }
+        th {
+            background-color: #f1f8ff;
+            font-weight: bold;
+            cursor: help;
+        }
+        th:hover .tooltip {
+            visibility: visible;
+            opacity: 1;
+        }
+        .tooltip {
+            visibility: hidden;
+            width: 200px;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            border-radius: 4px;
+            padding: 5px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: opacity 0.2s;
+            font-size: 0.8em;
+        }
+        .missing-data {
+            color: #ff4500;
+            font-size: 0.9em;
+            margin-top: 10px;
+        }
+        .metrics-button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-bottom: 20px;
+            text-align: center;
+            text-decoration: none;
+        }
+        .metrics-button:hover {
+            background-color: #218838;
+        }
+        .info-box { 
+            font-size: 0.8em;
+            border: 1px solid #ccc; 
+            padding: 10px; 
+            margin: 10px auto; 
+            width: 90%;
+            background: #f5f5f5; 
+            text-align: justify;
+            line-height: 1.3;
+            letter-spacing: 0.5px;
+        }
+        .info-box a {
+            color: #007BFF;
+            text-decoration: none;
+        }
+        .info-box a:hover {
+            text-decoration: underline;
+        }
+        #chartContainer {
+            width: 100%;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 10px;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        #metricsChart {
+            width: 100%;
+            height: 400px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 onclick="location.reload()">정부광고<sup>DEV_광고지표 계산기</sup></h1>
+        <div class="info-box">
+            정부광고DEV(정부광고 Develop)는 정부광고 업무 효율성과 생산성을 높이기 위해 정부광고1팀이 개발한 프로젝트입니다. 
+            이 광고지표 계산기는 공개된 데이터를 기반으로 정부광고GPT(<a href="https://chatgpt.com/g/g-Bj9hMsIVZ-jeongbugwanggogpt-v1-4-7">링크</a>)를 통해 제작되었으며, 
+            다양한 광고 지표를 계산해 캠페인 성과를 분석합니다. 여러분의 많은 관심과 활용을 기다립니다.
+        </div>
+        <a href="javascript:void(0)" onclick="showGoogleAdsMetrics()" class="metrics-button">광고 지표 설명</a>
+        <div class="input-group">
+            <label for="mediaCount">매체 수 선택:</label>
+            <select id="mediaCount" onchange="updateMediaInputs()">
+                <option value="1">1개</option>
+                <option value="2">2개</option>
+                <option value="3">3개</option>
+                <option value="4">4개</option>
+                <option value="5">5개</option>
+                <option value="6">6개</option>
+                <option value="7">7개</option>
+                <option value="8">8개</option>
+                <option value="9">9개</option>
+                <option value="10">10개</option>
+            </select>
+        </div>
+        <div id="mediaInputs"></div>
+        <div id="results"></div>
+        <div id="chartContainer">
+            <canvas id="metricsChart"></canvas>
+        </div>
+    </div>
+
+    <script>
+        console.log("HJ made this! - Page loaded successfully");
+
+        const metricOptions = [
+            '광고 매출', '광고 비용', '노출 수', '도달 수', '영상 조회 수', 
+            '완료 시청 수', '전환 수', '클릭 수', '좋아요 수', '댓글 수', 
+            '공유 수', '구매 전환 수', '리드 수', '품질 점수', '노출 점유율', 
+            '전환 가치', '목표 전환 비용', '총 타겟 오디언스'
+        ].sort();
+
+        function formatNumber(input) {
+            let value = input.value.replace(/,/g, '');
+            if (!isNaN(value) && value !== '') {
+                input.value = Number(value).toLocaleString('ko-KR');
+                console.log("Developed by HJ - Number formatting triggered");
+            }
+            calculateMetrics();
+        }
+
+        let currentMediaData = {};
+
+        function updateMediaInputs() {
+            const mediaCount = parseInt(document.getElementById('mediaCount').value);
+            const mediaInputsDiv = document.getElementById('mediaInputs');
+            const existingData = {};
+
+            for (let i = 0; i < 10; i++) {
+                const mediaSection = document.getElementById(`mediaSection${i}`);
+                if (mediaSection) {
+                    const mediaName = document.getElementById(`mediaName${i}`).value;
+                    const metricRows = document.getElementById(`metricRows${i}`).children;
+                    const metrics = {};
+                    for (let row of metricRows) {
+                        const metric = row.querySelector('select').value;
+                        const value = row.querySelector('input').value;
+                        if (metric) metrics[metric] = value;
+                    }
+                    existingData[i] = { name: mediaName, metrics };
+                }
+            }
+
+            mediaInputsDiv.innerHTML = '';
+
+            for (let i = 0; i < mediaCount; i++) {
+                const savedData = existingData[i] || { name: '', metrics: {} };
+                mediaInputsDiv.innerHTML += `
+                    <div class="media-section" id="mediaSection${i}">
+                        <div class="input-group">
+                            <label>매체 ${i + 1} 이름:</label>
+                            <input type="text" id="mediaName${i}" value="${savedData.name}" placeholder="예: Google Ads" oninput="calculateMetrics()">
+                        </div>
+                        <div id="metricRows${i}"></div>
+                        <button onclick="addMetricRow(${i})">지표 추가</button>
+                    </div>
+                `;
+                
+                const metricRowsDiv = document.getElementById(`metricRows${i}`);
+                if (Object.keys(savedData.metrics).length === 0) {
+                    addMetricRow(i);
+                } else {
+                    for (let metric in savedData.metrics) {
+                        const rowId = `metricRow${i}_${metricRowsDiv.children.length}`;
+                        metricRowsDiv.innerHTML += `
+                            <div class="metric-row" id="${rowId}">
+                                <select onchange="checkDuplicate(this, ${i}); calculateMetrics()">
+                                    <option value="">지표 선택</option>
+                                    ${metricOptions.map(opt => `<option value="${opt}" ${opt === metric ? 'selected' : ''}>${opt}</option>`).join('')}
+                                </select>
+                                <input type="text" value="${savedData.metrics[metric]}" placeholder="숫자 입력" oninput="formatNumber(this)">
+                                <button class="remove-btn" onclick="removeMetricRow('${rowId}', ${i})" ${Object.keys(savedData.metrics).length === 1 && metricRowsDiv.children.length === 0 ? 'disabled' : ''}>X</button>
+                            </div>
+                        `;
+                    }
+                }
+                updateRemoveButtons(i);
+            }
+            calculateMetrics();
+        }
+
+        function addMetricRow(mediaIndex) {
+            const metricRowsDiv = document.getElementById(`metricRows${mediaIndex}`);
+            const rowId = `metricRow${mediaIndex}_${metricRowsDiv.children.length}`;
+            metricRowsDiv.insertAdjacentHTML('beforeend', `
+                <div class="metric-row" id="${rowId}">
+                    <select onchange="checkDuplicate(this, ${mediaIndex}); calculateMetrics()">
+                        <option value="">지표 선택</option>
+                        ${metricOptions.map(opt => `<option value="${opt}">${opt}</option>`).join('')}
+                    </select>
+                    <input type="text" placeholder="숫자 입력" oninput="formatNumber(this)">
+                    <button class="remove-btn" onclick="removeMetricRow('${rowId}', ${mediaIndex})">X</button>
+                </div>
+            `);
+            updateRemoveButtons(mediaIndex);
+            calculateMetrics();
+            console.log("HJ made this! - Added a new metric row");
+        }
+
+        function checkDuplicate(select, mediaIndex) {
+            const rows = document.getElementById(`metricRows${mediaIndex}`).children;
+            const selectedValue = select.value;
+            for (let row of rows) {
+                const otherSelect = row.querySelector('select');
+                if (otherSelect !== select && otherSelect.value === selectedValue && selectedValue !== '') {
+                    alert('이미 선택된 지표입니다.');
+                    select.value = '';
+                    break;
+                }
+            }
+        }
+
+        function removeMetricRow(rowId, mediaIndex) {
+            const metricRowsDiv = document.getElementById(`metricRows${mediaIndex}`);
+            if (metricRowsDiv.children.length > 1) {
+                document.getElementById(rowId).remove();
+                updateRemoveButtons(mediaIndex);
+                calculateMetrics();
+            }
+        }
+
+        function updateRemoveButtons(mediaIndex) {
+            const metricRowsDiv = document.getElementById(`metricRows${mediaIndex}`);
+            const removeButtons = metricRowsDiv.querySelectorAll('.remove-btn');
+            removeButtons.forEach(btn => {
+                btn.disabled = metricRowsDiv.children.length === 1;
+            });
+        }
+
+        let chartInstance = null;
+
+        function calculateMetrics() {
+            console.log("Developed by HJ - Real-time metrics calculation");
+
+            const mediaCount = parseInt(document.getElementById('mediaCount').value);
+            let metricsAvailable = {
+                'CPM': false, 'CPC': false, 'CTR': false, 'CPA': false, 'ROAS': false,
+                'CPV': false, 'VTR': false, '평균 빈도': false, 'Reach1+': false,
+                'Reach3+': false, 'GRP': false, 'CPRP': false, 'CPL': false, 'CPE': false,
+                'CPS': false, '도달률': false, 'QS': false, 'IS': false, 'CVR': false
+            };
+            let missingInputs = {};
+            let chartData = { labels: [], datasets: [] };
+
+            let tableHTML = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th title="매체 이름">매체</th>
+            `;
+
+            const metricDescriptions = {
+                'CPM': '1,000회 노출당 비용 (원)',
+                'CPC': '클릭 1회당 비용 (원)',
+                'CTR': '노출 대비 클릭 비율 (%)',
+                'CPA': '전환 1건당 비용 (원)',
+                'ROAS': '광고비 대비 매출 비율 (%)',
+                'CPV': '영상 조회 1회당 비용 (원)',
+                'VTR': '영상 완료 시청 비율 (%)',
+                '평균 빈도': '사용자당 평균 노출 횟수',
+                'Reach1+': '1회 이상 노출된 고유 사용자 수',
+                'Reach3+': '3회 이상 노출된 고유 사용자 수',
+                'GRP': '도달률과 빈도의 총합',
+                'CPRP': 'GRP 1점당 비용 (원)',
+                'CPL': '리드 1건당 비용 (원)',
+                'CPE': '참여 1건당 비용 (원)',
+                'CPS': '공유 1건당 비용 (원)',
+                '도달률': '타겟 오디언스 대비 도달 비율 (%)',
+                'QS': '품질 점수 (1~10)',
+                'IS': '노출 점유율 (%)',
+                'CVR': '클릭 대비 전환 비율 (%)'
+            };
+
+            let rows = [];
+            for (let i = 0; i < mediaCount; i++) {
+                const mediaSection = document.getElementById(`mediaSection${i}`);
+                if (!mediaSection) continue;
+                const mediaName = document.getElementById(`mediaName${i}`).value || `매체 ${i + 1}`;
+                const metricRows = document.getElementById(`metricRows${i}`).children;
+                const data = {};
+
+                for (let row of metricRows) {
+                    const metric = row.querySelector('select').value;
+                    const value = parseFloat(row.querySelector('input').value.replace(/,/g, '')) || 0;
+                    if (metric) data[metric] = value;
+                }
+
+                const row = { mediaName };
+                const cost = data['광고 비용'] || 0;
+                const impressions = data['노출 수'] || 0;
+                const clicks = data['클릭 수'] || 0;
+                const conversions = data['전환 수'] || 0;
+                const revenue = data['광고 매출'] || 0;
+                const views = data['영상 조회 수'] || 0;
+                const completedViews = data['완료 시청 수'] || 0;
+                const reach = data['도달 수'] || 0;
+                const leads = data['리드 수'] || 0;
+                const engagements = (data['좋아요 수'] || 0) + (data['댓글 수'] || 0);
+                const shares = data['공유 수'] || 0;
+                const qualityScore = data['품질 점수'] || 0;
+                const impressionShare = data['노출 점유율'] || 0;
+                const targetAudience = data['총 타겟 오디언스'] || 0;
+
+                if (cost > 0 && impressions > 0) {
+                    row.cpm = (cost / impressions) * 1000;
+                    metricsAvailable['CPM'] = true;
+                } else if (!missingInputs['CPM']) missingInputs['CPM'] = ['광고 비용', '노출 수'];
+
+                if (cost > 0 && clicks > 0) {
+                    row.cpc = cost / clicks;
+                    metricsAvailable['CPC'] = true;
+                } else if (!missingInputs['CPC']) missingInputs['CPC'] = ['광고 비용', '클릭 수'];
+
+                if (impressions > 0 && clicks >= 0) {
+                    row.ctr = (clicks / impressions) * 100;
+                    metricsAvailable['CTR'] = true;
+                } else if (!missingInputs['CTR']) missingInputs['CTR'] = ['노출 수', '클릭 수'];
+
+                if (cost > 0 && conversions > 0) {
+                    row.cpa = cost / conversions;
+                    metricsAvailable['CPA'] = true;
+                } else if (!missingInputs['CPA']) missingInputs['CPA'] = ['광고 비용', '전환 수'];
+
+                if (revenue > 0 && cost > 0) {
+                    row.roas = (revenue / cost) * 100;
+                    metricsAvailable['ROAS'] = true;
+                } else if (!missingInputs['ROAS']) missingInputs['ROAS'] = ['광고 매출', '광고 비용'];
+
+                if (cost > 0 && views > 0) {
+                    row.cpv = cost / views;
+                    metricsAvailable['CPV'] = true;
+                } else if (!missingInputs['CPV']) missingInputs['CPV'] = ['광고 비용', '영상 조회 수'];
+
+                if (impressions > 0 && completedViews >= 0) {
+                    row.vtr = (completedViews / impressions) * 100;
+                    metricsAvailable['VTR'] = true;
+                } else if (!missingInputs['VTR']) missingInputs['VTR'] = ['노출 수', '완료 시청 수'];
+
+                if (reach > 0 && impressions > 0) {
+                    row.avgFrequency = impressions / reach;
+                    metricsAvailable['평균 빈도'] = true;
+                } else if (!missingInputs['평균 빈도']) missingInputs['평균 빈도'] = ['노출 수', '도달 수'];
+
+                if (reach > 0) {
+                    row.reach1Plus = reach;
+                    metricsAvailable['Reach1+'] = true;
+                } else if (!missingInputs['Reach1+']) missingInputs['Reach1+'] = ['도달 수'];
+
+                if (reach > 0 && impressions > 0) {
+                    row.reach3Plus = row.avgFrequency >= 3 ? reach * (impressions / (reach * 3)) : 0;
+                    metricsAvailable['Reach3+'] = true;
+                } else if (!missingInputs['Reach3+']) missingInputs['Reach3+'] = ['노출 수', '도달 수'];
+
+                if (reach > 0 && impressions > 0) {
+                    row.grp = (impressions / reach) * 100;
+                    metricsAvailable['GRP'] = true;
+                } else if (!missingInputs['GRP']) missingInputs['GRP'] = ['노출 수', '도달 수'];
+
+                if (cost > 0 && row.grp > 0) {
+                    row.cprp = cost / row.grp;
+                    metricsAvailable['CPRP'] = true;
+                } else if (!missingInputs['CPRP']) missingInputs['CPRP'] = ['광고 비용', 'GRP'];
+
+                if (cost > 0 && leads > 0) {
+                    row.cpl = cost / leads;
+                    metricsAvailable['CPL'] = true;
+                } else if (!missingInputs['CPL']) missingInputs['CPL'] = ['광고 비용', '리드 수'];
+
+                if (cost > 0 && engagements > 0) {
+                    row.cpe = cost / engagements;
+                    metricsAvailable['CPE'] = true;
+                } else if (!missingInputs['CPE']) missingInputs['CPE'] = ['광고 비용', '좋아요 수 또는 댓글 수'];
+
+                if (cost > 0 && shares > 0) {
+                    row.cps = cost / shares;
+                    metricsAvailable['CPS'] = true;
+                } else if (!missingInputs['CPS']) missingInputs['CPS'] = ['광고 비용', '공유 수'];
+
+                if (reach > 0 && targetAudience > 0) {
+                    row.reachRate = (reach / targetAudience) * 100;
+                    metricsAvailable['도달률'] = true;
+                } else if (!missingInputs['도달률']) missingInputs['도달률'] = ['도달 수', '총 타겟 오디언스'];
+
+                if (qualityScore > 0) {
+                    row.qs = qualityScore;
+                    metricsAvailable['QS'] = true;
+                } else if (!missingInputs['QS']) missingInputs['QS'] = ['품질 점수'];
+
+                if (impressionShare > 0) {
+                    row.is = impressionShare;
+                    metricsAvailable['IS'] = true;
+                } else if (!missingInputs['IS']) missingInputs['IS'] = ['노출 점유율'];
+
+                if (clicks > 0 && conversions > 0) {
+                    row.cvr = (conversions / clicks) * 100;
+                    metricsAvailable['CVR'] = true;
+                } else if (!missingInputs['CVR']) missingInputs['CVR'] = ['클릭 수', '전환 수'];
+
+                rows.push(row);
+                chartData.labels.push(mediaName);
+            }
+
+            for (const metric in metricsAvailable) {
+                if (metricsAvailable[metric]) {
+                    tableHTML += `<th>${metric}<span class="tooltip">${metricDescriptions[metric]}</span></th>`;
+                    const dataset = {
+                        label: metric,
+                        data: rows.map(row => row[metric.toLowerCase()] || 0),
+                        backgroundColor: `rgba(${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}, 0.5)`,
+                        borderColor: `rgba(${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}, 1)`,
+                        borderWidth: 1
+                    };
+                    chartData.datasets.push(dataset);
+                }
+            }
+            tableHTML += `</tr></thead><tbody>`;
+
+            rows.forEach(row => {
+                tableHTML += `<tr><td>${row.mediaName}</td>`;
+                if (metricsAvailable['CPM']) tableHTML += `<td>${row.cpm ? Number(row.cpm.toFixed(2)).toLocaleString('ko-KR') : '-'}</td>`;
+                if (metricsAvailable['CPC']) tableHTML += `<td>${row.cpc ? Number(row.cpc.toFixed(2)).toLocaleString('ko-KR') : '-'}</td>`;
+                if (metricsAvailable['CTR']) tableHTML += `<td>${row.ctr ? Number(row.ctr.toFixed(2)).toLocaleString('ko-KR') : '-'}</td>`;
+                if (metricsAvailable['CPA']) tableHTML += `<td>${row.cpa ? Number(row.cpa.toFixed(2)).toLocaleString('ko-KR') : '-'}</td>`;
+                if (metricsAvailable['ROAS']) tableHTML += `<td>${row.roas ? Number(row.roas.toFixed(2)).toLocaleString('ko-KR') : '-'}</td>`;
+                if (metricsAvailable['CPV']) tableHTML += `<td>${row.cpv ? Number(row.cpv.toFixed(2)).toLocaleString('ko-KR') : '-'}</td>`;
+                if (metricsAvailable['VTR']) tableHTML += `<td>${row.vtr ? Number(row.vtr.toFixed(2)).toLocaleString('ko-KR') : '-'}</td>`;
+                if (metricsAvailable['평균 빈도']) tableHTML += `<td>${row.avgFrequency ? Number(row.avgFrequency.toFixed(2)).toLocaleString('ko-KR') : '-'}</td>`;
+                if (metricsAvailable['Reach1+']) tableHTML += `<td>${row.reach1Plus ? Number(row.reach1Plus).toLocaleString('ko-KR') : '-'}</td>`;
+                if (metricsAvailable['Reach3+']) tableHTML += `<td>${row.reach3Plus ? Math.round(row.reach3Plus).toLocaleString('ko-KR') : '-'}</td>`;
+                if (metricsAvailable['GRP']) tableHTML += `<td>${row.grp ? Number(row.grp.toFixed(2)).toLocaleString('ko-KR') : '-'}</td>`;
+                if (metricsAvailable['CPRP']) tableHTML += `<td>${row.cprp ? Number(row.cprp.toFixed(2)).toLocaleString('ko-KR') : '-'}</td>`;
+                if (metricsAvailable['CPL']) tableHTML += `<td>${row.cpl ? Number(row.cpl.toFixed(2)).toLocaleString('ko-KR') : '-'}</td>`;
+                if (metricsAvailable['CPE']) tableHTML += `<td>${row.cpe ? Number(row.cpe.toFixed(2)).toLocaleString('ko-KR') : '-'}</td>`;
+                if (metricsAvailable['CPS']) tableHTML += `<td>${row.cps ? Number(row.cps.toFixed(2)).toLocaleString('ko-KR') : '-'}</td>`;
+                if (metricsAvailable['도달률']) tableHTML += `<td>${row.reachRate ? Number(row.reachRate.toFixed(2)).toLocaleString('ko-KR') : '-'}</td>`;
+                if (metricsAvailable['QS']) tableHTML += `<td>${row.qs ? Number(row.qs).toLocaleString('ko-KR') : '-'}</td>`;
+                if (metricsAvailable['IS']) tableHTML += `<td>${row.is ? Number(row.is.toFixed(2)).toLocaleString('ko-KR') : '-'}</td>`;
+                if (metricsAvailable['CVR']) tableHTML += `<td>${row.cvr ? Number(row.cvr.toFixed(2)).toLocaleString('ko-KR') : '-'}</td>`;
+                tableHTML += `</tr>`;
+            });
+
+            tableHTML += `</tbody></table>`;
+
+            let missingMessage = '';
+            for (const metric in missingInputs) {
+                if (!metricsAvailable[metric]) {
+                    missingMessage += `<p>"${metric}" 지표를 계산하려면 "${missingInputs[metric].join('", "')}" 값을 입력하세요.</p>`;
+                }
+            }
+            if (missingMessage) {
+                tableHTML += `<div class="missing-data">${missingMessage}</div>`;
+            }
+
+            document.getElementById('results').innerHTML = tableHTML;
+
+            const ctx = document.getElementById('metricsChart').getContext('2d');
+            if (!ctx) {
+                console.error('Canvas context를 찾을 수 없습니다.');
+                return;
+            }
+
+            console.log('chartData:', chartData);
+            if (chartData.labels.length === 0 || chartData.datasets.length === 0) {
+                console.warn('차트에 표시할 데이터가 없습니다.');
+                document.getElementById('results').innerHTML += '<p class="missing-data">차트에 표시할 데이터가 없습니다.</p>';
+                return;
+            }
+
+            if (chartInstance) chartInstance.destroy();
+            chartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: chartData,
+                options: {
+                    scales: { y: { beginAtZero: true } },
+                    plugins: {
+                        legend: { position: 'top' },
+                        title: { display: true, text: '매체별 광고 지표' }
+                    }
+                }
+            });
+            console.log('Chart instance created:', chartInstance);
+        }
+
+        function showGoogleAdsMetrics() {
+            console.log("HJ made this! - Opening Google Ads metrics window");
+
+            const metricsWindow = window.open('', '_blank');
+            metricsWindow.document.write(`
+                <html>
+                <head>
+                    <title>Google Ads 지표 설명</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; padding: 20px; max-width: 900px; margin: 0 auto; }
+                        h2 { color: #333; }
+                        ul { list-style-type: none; padding: 0; }
+                        li { margin: 25px 0; }
+                        a { color: #007BFF; text-decoration: none; }
+                        a:hover { text-decoration: underline; }
+                        .metric-box { 
+                            border: 1px solid #ddd; 
+                            padding: 15px; 
+                            background-color: #f9f9f9; 
+                            border-radius: 5px; 
+                            margin-top: 10px; 
+                            line-height: 1.5; 
+                        }
+                        .metric-box strong { color: #333; }
+                        .metric-box p { margin: 10px 0; }
+                    </style>
+                </head>
+                <body>
+                    <h2>Google Ads 주요 지표 설명</h2>
+                    <ul>
+                        <li><strong>Impressions (노출 수)</strong> <a href="https://support.google.com/google-ads/answer/6320" target="_blank">참고 자료</a>
+                            <div class="metric-box">
+                                <p><strong>산출 공식:</strong> 광고가 화면에 표시된 총 횟수 (고유 값 아님)</p>
+                                <p><strong>설명:</strong> 광고가 사용자 화면에 노출된 총 횟수를 의미합니다. 예를 들어, 한 사람이 광고를 3번 본 경우 노출 수는 3으로 계산됩니다.</p>
+                            </div>
+                        </li>
+                        <li><strong>Quality Score (품질 점수)</strong> <a href="https://support.google.com/google-ads/answer/6167118" target="_blank">참고 자료</a>
+                            <div class="metric-box">
+                                <p><strong>산출 공식:</strong> 클릭률(CTR), 광고 관련성, 랜딩 페이지 경험의 조합 (1~10점)</p>
+                                <p><strong>설명:</strong> 키워드와 광고, 랜딩 페이지의 품질을 종합적으로 평가한 점수입니다.</p>
+                            </div>
+                        </li>
+                        <li><strong>Impression Share (노출 점유율)</strong> <a href="https://support.google.com/google-ads/answer/2497703" target="_blank">참고 자료</a>
+                            <div class="metric-box">
+                                <p><strong>산출 공식:</strong> (실제 노출 수 ÷ 받을 수 있었던 총 노출 수) × 100</p>
+                                <p><strong>설명:</strong> 광고가 노출될 수 있었던 모든 기회 중 실제로 노출된 비율을 나타냅니다.</p>
+                            </div>
+                        </li>
+                        <li><strong>Conversion Value (전환 가치)</strong> <a href="https://support.google.com/google-ads/answer/3419241" target="_blank">참고 자료</a>
+                            <div class="metric-box">
+                                <p><strong>산출 공식:</strong> 전환으로 발생한 총 매출액 (사용자 정의 설정 필요)</p>
+                                <p><strong>설명:</strong> 광고로 인해 발생한 전환(구매, 가입 등)의 금전적 가치를 합산한 값입니다.</p>
+                            </div>
+                        </li>
+                        <li><strong>Cost Per Conversion (CPA)</strong> <a href="https://support.google.com/google-ads/answer/6396841" target="_blank">참고 자료</a>
+                            <div class="metric-box">
+                                <p><strong>산출 공식:</strong> 광고 비용 ÷ 전환 수</p>
+                                <p><strong>설명:</strong> 전환 1건을 얻기 위해 지출한 평균 비용입니다.</p>
+                            </div>
+                        </li>
+                        <li><strong>CPM (Cost Per Mille)</strong> <a href="https://support.google.com/google-ads/answer/6310" target="_blank">참고 자료</a>
+                            <div class="metric-box">
+                                <p><strong>산출 공식:</strong> (광고 비용 ÷ 노출 수) × 1,000</p>
+                                <p><strong>설명:</strong> 광고가 1,000번 노출될 때 드는 비용입니다.</p>
+                            </div>
+                        </li>
+                        <li><strong>CPV (Cost Per View)</strong> <a href="https://support.google.com/google-ads/answer/6320" target="_blank">참고 자료</a>
+                            <div class="metric-box">
+                                <p><strong>산출 공식:</strong> 광고 비용 ÷ 영상 조회 수</p>
+                                <p><strong>설명:</strong> 영상 광고가 1회 조회될 때 드는 평균 비용입니다.</p>
+                            </div>
+                        </li>
+                        <li><strong>VTR (View-Through Rate)</strong> <a href="https://support.google.com/google-ads/answer/6270" target="_blank">참고 자료</a>
+                            <div class="metric-box">
+                                <p><strong>산출 공식:</strong> (완료 시청 수 ÷ 노출 수) × 100</p>
+                                <p><strong>설명:</strong> 영상 광고가 끝까지 시청된 비율을 나타냅니다.</p>
+                            </div>
+                        </li>
+                        <li><strong>Reach1+ (1회 이상 도달)</strong> <a href="https://support.google.com/google-ads/answer/2472716" target="_blank">참고 자료</a>
+                            <div class="metric-box">
+                                <p><strong>산출 공식:</strong> 최소 1회 노출된 고유 사용자 수</p>
+                                <p><strong>설명:</strong> 광고를 최소 1번 이상 본 고유 사용자 수입니다.</p>
+                            </div>
+                        </li>
+                        <li><strong>Reach3+ (3회 이상 도달)</strong> <a href="https://support.google.com/google-ads/answer/2472716" target="_blank">참고 자료</a>
+                            <div class="metric-box">
+                                <p><strong>산출 공식:</strong> 3회 이상 노출된 고유 사용자 수 (근사치로 계산 가능)</p>
+                                <p><strong>설명:</strong> 광고를 3번 이상 본 고유 사용자 수를 의미합니다.</p>
+                            </div>
+                        </li>
+                        <li><strong>Average Frequency (평균 빈도)</strong> <a href="https://support.google.com/google-ads/answer/2472716" target="_blank">참고 자료</a>
+                            <div class="metric-box">
+                                <p><strong>산출 공식:</strong> 노출 수 ÷ 도달 수</p>
+                                <p><strong>설명:</strong> 한 사용자당 평균 노출 횟수입니다.</p>
+                            </div>
+                        </li>
+                        <li><strong>GRP (Gross Rating Point)</strong> <a href="https://support.google.com/google-ads/answer/1726755" target="_blank">참고 자료</a>
+                            <div class="metric-box">
+                                <p><strong>산출 공식:</strong> (노출 수 ÷ 도달 수) × 100</p>
+                                <p><strong>설명:</strong> 도달률과 빈도의 곱으로, 광고의 총 도달 영향을 나타냅니다.</p>
+                            </div>
+                        </li>
+                        <li><strong>CPRP (Cost Per Rating Point)</strong> <a href="https://support.google.com/google-ads/answer/1726755" target="_blank">참고 자료</a>
+                            <div class="metric-box">
+                                <p><strong>산출 공식:</strong> 광고 비용 ÷ GRP</p>
+                                <p><strong>설명:</strong> GRP 1점당 비용을 의미합니다.</p>
+                            </div>
+                        </li>
+                        <li><strong>CPL (Cost Per Lead)</strong>
+                            <div class="metric-box">
+                                <p><strong>산출 공식:</strong> 광고 비용 ÷ 리드 수</p>
+                                <p><strong>설명:</strong> 리드 1건을 얻기 위해 지출한 평균 비용입니다.</p>
+                            </div>
+                        </li>
+                        <li><strong>CPE (Cost Per Engagement)</strong>
+                            <div class="metric-box">
+                                <p><strong>산출 공식:</strong> 광고 비용 ÷ (좋아요 수 + 댓글 수)</p>
+                                <p><strong>설명:</strong> 참여 1건당 드는 평균 비용입니다.</p>
+                            </div>
+                        </li>
+                        <li><strong>CPS (Cost Per Share)</strong>
+                            <div class="metric-box">
+                                <p><strong>산출 공식:</strong> 광고 비용 ÷ 공유 수</p>
+                                <p><strong>설명:</strong> 공유 1건당 드는 평균 비용입니다.</p>
+                            </div>
+                        </li>
+                        <li><strong>Reach Rate (도달률)</strong>
+                            <div class="metric-box">
+                                <p><strong>산출 공식:</strong> (도달 수 ÷ 총 타겟 오디언스) × 100</p>
+                                <p><strong>설명:</strong> 타겟 오디언스 대비 도달한 비율입니다.</p>
+                            </div>
+                        </li>
+                        <li><strong>CVR (Conversion Rate)</strong>
+                            <div class="metric-box">
+                                <p><strong>산출 공식:</strong> (전환 수 ÷ 클릭 수) × 100</p>
+                                <p><strong>설명:</strong> 클릭 대비 전환된 비율입니다.</p>
+                            </div>
+                        </li>
+                    </ul>
+                </body>
+                </html>
+            `);
+            metricsWindow.document.close();
+        }
+
+        window.onload = updateMediaInputs;
+
+        window.addEventListener('load', function() {
+            if (typeof Chart === 'undefined') {
+                console.error('Chart.js가 로드되지 않았습니다. 네트워크를 확인하세요.');
+                document.getElementById('results').innerHTML = '<p class="missing-data">Chart.js 로드 실패로 차트를 표시할 수 없습니다.</p>';
+            } else {
+                console.log('Chart.js가 정상적으로 로드되었습니다.');
+            }
+        });
+    </script>
+    <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'91ef5a12ff2a4505',t:'MTc0MTc0MTE5Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
+    <script src="/log.js"></script>
+</body>
+</html>
+</DOCUMENT>
