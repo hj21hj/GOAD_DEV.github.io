@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>음성 변환 서비스</title>
+  <style>
+    body { 
+      font-family: Arial, sans-serif; 
+      max-width: 800px; 
+      margin: 20px auto; 
+      padding: 20px; 
+      font-size: 16px;
+    }
+    h1 { text-align: center; }
+    .info-box { 
+      font-size: 14px; 
+      color: #666; 
+      border: 1px solid #ddd; 
+      padding: 10px; 
+      margin: 20px 0; 
+      background-color: #f9f9f9; 
+      border-radius: 4px; 
+      text-align: center;
+      line-height: 1.5;
+    }
+    form { margin-top: 20px; text-align: center; }
+    input[type="file"] { margin: 10px 0; }
+    #result { 
+      margin-top: 20px; 
+      white-space: pre-wrap; 
+      border: 1px solid #ccc; 
+      padding: 15px; 
+      border-radius: 4px; 
+      background-color: #f4f4f4;
+    }
+    .loading { color: #007bff; font-style: italic; }
+    .error { color: #dc3545; }
+  </style>
+</head>
+<body>
+  <h1>음성 변환 서비스</h1>
+  <div class="info-box">
+    이 서비스는 브라우저에서 업로드한 오디오 파일의 음성을<br>
+    한국어 텍스트로 변환합니다.<br>
+    <strong>지원 형식: MP3, WAV</strong>
+  </div>
+  
+  <form id="audioForm">
+    <label for="audioFile">오디오 파일 업로드:</label><br>
+    <input type="file" id="audioFile" accept="audio/*" /><br>
+    <button type="submit">변환 시작</button>
+  </form>
+  
+  <h2>변환 결과</h2>
+  <div id="result"></div>
+  
+  <audio id="audioPlayer" controls style="display: none;"></audio>
+  
+  <script>
+    const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+    recognition.lang = 'ko-KR';
+    recognition.continuous = true;
+    recognition.interimResults = true;
+
+    const resultDiv = document.getElementById('result');
+    let transcript = '';
+
+    recognition.onresult = (event) => {
+      transcript = Array.from(event.results)
+        .map(result => result[0].transcript)
+        .join('\n');
+      resultDiv.textContent = transcript || '변환된 텍스트가 없습니다.';
+    };
+
+    recognition.onerror = (event) => {
+      resultDiv.textContent = `오류 발생: ${event.error}`;
+      resultDiv.classList.add('error');
+    };
+
+    recognition.onend = () => {
+      resultDiv.classList.remove('loading');
+    };
+
+    document.getElementById('audioForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      
+      const audioFile = document.getElementById('audioFile').files[0];
+      const audioPlayer = document.getElementById('audioPlayer');
+
+      if (!audioFile) {
+        alert('오디오 파일을 선택해주세요.');
+        return;
+      }
+
+      resultDiv.textContent = '처리 중입니다...';
+      resultDiv.classList.add('loading');
+      transcript = '';
+
+      const audioUrl = URL.createObjectURL(audioFile);
+      audioPlayer.src = audioUrl;
+      audioPlayer.play();
+      recognition.start();
+
+      audioPlayer.onended = () => {
+        recognition.stop();
+        URL.revokeObjectURL(audioUrl); // 메모리 정리
+      };
+    });
+  </script>
+</body>
+</html>
