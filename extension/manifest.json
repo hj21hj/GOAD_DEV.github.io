@@ -1,0 +1,22 @@
+{
+  "manifest_version": 3,
+  "name": "GoFullPage Clone",
+  "version": "1.0",
+  "description": "전체 웹페이지 캡처 및 특정 영역 지정 후 다운로드",
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "downloads",
+    "storage"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "web_accessible_resources": [{
+    "resources": ["capture.html", "capture.js", "content.js"],
+    "matches": ["<all_urls>"]
+  }]
+}
