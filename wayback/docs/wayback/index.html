@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>Wayback Archive - Capture & Browse</title>
+  <style>
+    body { font-family: Arial, sans-serif; }
+    form { margin-bottom: 20px; }
+    label { display: block; margin-top: 10px; }
+    input[type="text"] { width: 300px; padding: 5px; }
+    input[type="submit"] { margin-top: 10px; padding: 5px 10px; }
+    ul { list-style: none; padding: 0; }
+    li { display: inline-block; margin: 10px; }
+    img { border: 1px solid #ccc; }
+  </style>
+</head>
+<body>
+  <h1>웹페이지 스크린샷 아카이브</h1>
+  <p>아래 폼에 웹사이트 URL과 시간(선택)을 입력하면, 동적 백엔드 서비스에서 스크린샷을 캡처합니다.</p>
+  
+  <!-- 사용자 입력 폼: action은 동적 크롤링 서비스 URL로 설정 (아래 URL은 예시입니다) -->
+  <form action="https://your-flask-app.example.com/" method="post">
+    <label for="url">웹사이트 URL:</label>
+    <input type="text" id="url" name="url" required placeholder="https://www.example.com">
+    
+    <label for="time">시간 (예: 2025-03-18 07:00, 입력하지 않으면 현재 시간 사용):</label>
+    <input type="text" id="time" name="time" placeholder="YYYY-MM-DD HH:MM">
+    
+    <input type="submit" value="스크린샷 캡처">
+  </form>
+  
+  <hr>
+  
+  <h2>아카이브된 스크린샷</h2>
+  <!-- 아래는 예시 목록입니다. 실제로는 백엔드나 자동 스크립트를 통해 최신 스크린샷 목록으로 갱신하세요. -->
+  <ul>
+    <li>
+      <a href="./20250318/example.com_20250318_070000.png" target="_blank">
+        <img src="./20250318/example.com_20250318_070000.png" alt="example.com 스크린샷" style="max-width:300px;">
+      </a>
+    </li>
+    <!-- 추가된 스크린샷 목록 항목 -->
+  </ul>
+</body>
+</html>
