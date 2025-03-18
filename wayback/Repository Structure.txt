@@ -1,0 +1,12 @@
+.
+├── docs
+│   ├── index.html           # GitHub Pages 메인 페이지 (아카이브 목록 등을 표시)
+│   └── wayback              # 아카이브용 폴더 (스크린샷 이미지들이 저장됨)
+│       ├── index.html       # (선택사항) wayback 폴더의 진입 페이지
+│       └── 20250318_example.com_20250318_070000.png  # 예시 스크린샷 파일
+├── .github
+│   └── workflows
+│       └── archive.yml      # GitHub Actions 워크플로우 파일 (자동 크롤링/업데이트)
+├── archive.js               # (Node.js 스크립트) 웹페이지 스크린샷 캡처 스크립트
+├── package.json             # archive.js 실행에 필요한 의존성 명시 파일
+└── README.md                # 프로젝트 설명 파일 (선택사항)
