@@ -1,0 +1,16 @@
+{
+  "manifest_version": 3,
+  "name": "전체 페이지 캡처 및 영역 지정",
+  "version": "1.0",
+  "description": "현재 페이지 전체를 캡처한 후, 새 창에서 캡처 화면을 표시하고 3곳의 영역을 지정하여 PDF로 저장합니다.",
+  "permissions": ["activeTab", "scripting", "storage", "tabs"],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icon.png",
+      "32": "icon.png",
+      "48": "icon.png",
+      "128": "icon.png"
+    }
+  }
+}

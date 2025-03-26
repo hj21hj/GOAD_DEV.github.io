@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>전체 페이지 캡처</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; }
+    button { margin: 10px 5px; padding: 10px 15px; font-size: 14px; }
+  </style>
+</head>
+<body>
+  <button id="captureBtn">전체 페이지 캡처</button>
+  <script>
+    document.getElementById('captureBtn').addEventListener('click', () => {
+      chrome.tabs.captureVisibleTab(null, { format: "png" }, function(dataUrl) {
+        if (chrome.runtime.lastError) {
+          alert("캡처 실패: " + chrome.runtime.lastError.message);
+          return;
+        }
+        if (!dataUrl) {
+          alert("캡처 데이터가 없습니다.");
+          return;
+        }
+        // 고유 id 생성 (타임스탬프 사용)
+        const captureId = Date.now().toString();
+        // 캡처 데이터를 chrome.storage.local에 저장
+        chrome.storage.local.set({ [captureId]: dataUrl }, function() {
+          chrome.tabs.query({ active: true, currentWindow: true }, function(tabs) {
+            if (!tabs || !tabs[0]) {
+              alert("현재 탭 정보를 가져오지 못했습니다.");
+              return;
+            }
+            const currentUrl = tabs[0].url;
+            // capture.html 페이지 URL 생성 (id와 url 쿼리 파라미터 포함)
+            const capturePageUrl = chrome.runtime.getURL("capture.html") +
+              "?id=" + encodeURIComponent(captureId) +
+              "&url=" + encodeURIComponent(currentUrl);
+            window.open(capturePageUrl, "_blank");
+          });
+        });
+      });
+    });
+  </script>
+</body>
+</html>
