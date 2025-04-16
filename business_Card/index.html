@@ -1,0 +1,69 @@
+
+---
+
+## 2. index.html
+
+```html
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8"/>
+  <title>명함 OCR 및 엑셀 자동 추출</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>명함 자동 OCR & 엑셀 추출</h1>
+      <p>명함 이미지를 업로드하여 정보를 자동으로 엑셀 파일로 받아보세요.</p>
+    </header>
+
+    <!-- 업로드 영역 -->
+    <section id="uploadSection">
+      <div id="dropZone">여기에 명함 이미지를 드래그 앤드 드롭 하거나 클릭하세요.</div>
+      <input type="file" id="fileInput" multiple accept="image/*" />
+    </section>
+
+    <!-- 다운로드 버튼 및 로그 영역 -->
+    <section id="actionSection">
+      <button id="downloadExcel" disabled>엑셀 다운로드</button>
+      <div id="logArea"></div>
+    </section>
+
+    <!-- OCR 결과 테이블 -->
+    <section id="resultSection">
+      <table>
+        <thead>
+          <tr>
+            <th>분류</th>
+            <th>이름</th>
+            <th>핸드폰</th>
+            <th>전자우편주소</th>
+            <th>집전화</th>
+            <th>집주소</th>
+            <th>우편번호(집)</th>
+            <th>회사</th>
+            <th>홈페이지</th>
+            <th>직위</th>
+            <th>부서</th>
+            <th>회사전화</th>
+            <th>팩스(회사)</th>
+            <th>회사주소</th>
+            <th>우편번호(회사)</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </section>
+
+    <footer>
+      <p>&copy; 2025 Business Card Reader</p>
+    </footer>
+  </div>
+
+  <!-- Tesseract.js (OCR) 및 SheetJS (엑셀) CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
