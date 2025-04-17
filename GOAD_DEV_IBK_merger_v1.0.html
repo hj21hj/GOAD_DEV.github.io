@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>정부광고<sup style="font-size: 0.5em;">DEV_파일병합 및 PDF 변환</sup></title>
+
+  <!-- Google Analytics GA4 코드 -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DZN77QMBX7"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    document.addEventListener("DOMContentLoaded", function() {
+      gtag('js', new Date());
+      gtag('config', 'G-DZN77QMBX7', {
+        'page_path': window.location.pathname,
+        'page_location': window.location.href
+      });
+      
+      const downloadZipBtn = document.getElementById("downloadZip");
+      if (downloadZipBtn) {
+        downloadZipBtn.addEventListener("click", function() {
+          gtag('event', 'download_zip', {
+            'event_category': '파일 병합',
+            'event_label': 'ZIP 파일 다운로드 버튼 클릭'
+          });
+        });
+      }
+    });
+  </script>
+
+  <!-- 필수 라이브러리 -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://unpkg.com/pdf-lib@1.17.0/dist/pdf-lib.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.9.359/pdf.min.js"></script>
+  
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 800px; margin: 20px auto; padding: 20px; background: #f5f5f5; }
+    .container { text-align: center; position: relative; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+    #tableContainer {
+      overflow-x: auto;
+      min-width: 100%;
+    }
+    table { 
+      border-collapse: collapse; 
+      min-width: 1000px; /* 가로 스크롤 강제 생성 */
+      background: #fff; 
+      border-radius: 4px; 
+      overflow: hidden; 
+    }
+    th, td { 
+      border: 1px solid #e0e0e0;
+      padding: 6px;
+      text-align: left; 
+      font-size: 0.8em;
+      transition: background-color 0.3s;
+      vertical-align: middle;
+    }
+    th { background: #f8f9fa; font-weight: bold; }
+    th:hover, td:hover { background-color: #f0f7fa; }
+    #pasteArea {
+      border: 2px dashed #aaa;
+      padding: 20px;
+      margin: 20px 0;
+      background: #fafafa;
+      border-radius: 4px;
+      transition: border-color 0.3s, background-color 0.3s;
+      min-height: 100px;
+    }
+    #pasteArea:focus { outline: none; border-color: #4CAF50; background: #f0f0f0; }
+    button { padding: 10px 20px; background: linear-gradient(45deg, #4CAF50, #45a049); color: white; border: none; cursor: pointer; border-radius: 4px; transition: background 0.3s; }
+    button:hover { background: linear-gradient(45deg, #45a049, #3d8b40); }
+    .info-box { 
+      font-size: 0.8em; 
+      border: 1px solid #ccc; 
+      padding: 10px; 
+      margin: 10px auto; 
+      width: 90%; 
+      background: #f5f5f5; 
+      text-align: justify; 
+      line-height: 1.3; 
+      letter-spacing: 0.5px; 
+    }
+    .info-box a { color: #1e90ff; text-decoration: none; }
+    .info-box a:hover { text-decoration: underline; }
+    .upload-btn {
+      display: inline-block;
+      margin-top: 5px;
+      padding: 3px 6px;
+      background: #2196f3;
+      color: white;
+      font-size: 0.75em;
+      border: none;
+      border-radius: 3px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .preview-click {
+      cursor: pointer;
+      max-width: 100px;
+      max-height: 100px;
+      border: 1px solid #ddd;
+      display: block;
+      margin: 0 auto;
+    }
+    .pdf-preview {
+      margin-top: 10px;
+      text-align: center;
+    }
+    .pdf-preview canvas {
+      display: block;
+      margin: 0 auto;
+      cursor: pointer;
+      border: 1px solid #ddd;
+    }
+    .pdf-page-label {
+      font-size: 0.8em;
+      color: #555;
+      margin-top: 4px;
+    }
+    .pdf-page-input {
+      margin-top: 5px;
+      width: 100%;
+      font-size: 0.8em;
+      padding: 4px;
+    }
+    #previewModal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.8);
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+    #modalContent {
+      position: relative;
+      max-width: 90vw;
+      max-height: 90vh;
+      background: #fff;
+      padding: 10px;
+      overflow-y: auto;
+    }
+    #modalContent img, #modalContent canvas {
+      max-width: 100%;
+      max-height: 100%;
+      display: block;
+      margin: 0 auto;
+    }
+    #modalClose {
+      position: absolute;
+      top: -10px;
+      right: -10px;
+      background: #fff;
+      border-radius: 50%;
+      padding: 5px 10px;
+      cursor: pointer;
+      font-size: 18px;
+      line-height: 1;
+      z-index: 1100;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1 onclick="location.reload()">정부광고<sup style="font-size: 0.5em;">DEV_파일병합 및 PDF 변환</sup></h1>
+    <div class="info-box">
+      정부광고DEV(정부광고 Develope)는 정부광고 업무 효율과 생산성을 효과적으로 개선하기 위한 광고운영국의 프로젝트입니다. 정부광고DEV는 공개된 정보만을 활용하여 정부광고GPT(<a href="https://chatgpt.com/g/g-Bj9hMsIVZ-jeongbugwanggogpt-v1-4-7" target="_blank">링크</a>)를 통해 개발되었습니다. <br>
+      엑셀 표를 복사하여 붙여넣으면 해당 표의 데이터와 업로드한 파일을 기반으로 파일명이 재조합되어 ZIP 파일로 다운로드됩니다.<br>
+      업로드한 파일이 PDF인 경우, 미리보기 영역에서 페이지 입력과 함께 클릭하면 PDF 전체 페이지(각 페이지 번호 포함)를 스크롤하여 미리볼 수 있습니다. 많은 관심과 이용 부탁드립니다.<br>
+      <br>
+      ㅇ (문의) 정동욱 팀장(841), 황재 과장(847) <br>
+    </div>
+    <p>
+      엑셀 표를 복사하여 아래 영역에 붙여넣으면 표가 생성됩니다.<br>
+      각 데이터 행의 오른쪽 끝(빈 셀)은 파일 업로드용으로 사용됩니다. <br>
+      업로드한 이미지와 PDF 파일은 클릭 시 모달 창에서 확대되어 미리볼 수 있습니다.
+    </p>
+    
+    <div id="pasteArea" contenteditable="true">
+      여기에 엑셀 표를 복사해서 붙여넣으세요.
+    </div>
+    
+    <div id="tableContainer"></div>
+    <button id="downloadZip" style="display: none;">압축 파일 다운로드</button>
+  </div>
+
+  <div id="previewModal" onclick="closeModal()">
+    <div id="modalContent" onclick="event.stopPropagation()">
+      <span id="modalClose" onclick="closeModal()">×</span>
+    </div>
+  </div>
+
+  <script>
+    function openModalWithContent(content) {
+      const modal = document.getElementById("previewModal");
+      const modalContent = document.getElementById("modalContent");
+      modalContent.innerHTML = '<span id="modalClose" onclick="closeModal()">×</span>';
+      modalContent.appendChild(content);
+      modal.style.display = "flex";
+    }
+    function openImageModal(src) {
+      const img = document.createElement("img");
+      img.src = src;
+      openModalWithContent(img);
+    }
+    async function openPdfScrollModal(arrayBuffer) {
+      try {
+        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+        const container = document.createElement("div");
+        container.style.padding = "10px";
+        for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+          const page = await pdf.getPage(pageNum);
+          const viewport = page.getViewport({ scale: 1.5 });
+          const canvas = document.createElement("canvas");
+          canvas.width = viewport.width;
+          canvas.height = viewport.height;
+          canvas.style.display = "block";
+          canvas.style.margin = "0 auto";
+          await page.render({ canvasContext: canvas.getContext("2d"), viewport: viewport }).promise;
+          
+          const pageContainer = document.createElement("div");
+          pageContainer.style.marginBottom = "20px";
+          pageContainer.style.textAlign = "center";
+          pageContainer.appendChild(canvas);
+          
+          const pageLabel = document.createElement("div");
+          pageLabel.textContent = `Page ${pageNum} of ${pdf.numPages}`;
+          pageLabel.style.fontSize = "1em";
+          pageLabel.style.color = "#333";
+          pageContainer.appendChild(pageLabel);
+          
+          container.appendChild(pageContainer);
+        }
+        openModalWithContent(container);
+      } catch (error) {
+        console.error("PDF 스크롤 미리보기 오류:", error);
+      }
+    }
+    function closeModal() {
+      document.getElementById("previewModal").style.display = "none";
+    }
+
+    const pasteArea = document.getElementById("pasteArea");
+    const tableContainer = document.getElementById("tableContainer");
+    const downloadZipBtn = document.getElementById("downloadZip");
+    let uploadedFiles = [];
+    let headers = [];
+
+    pasteArea.addEventListener("paste", (e) => {
+      e.preventDefault();
+      const clipboardData = (e.clipboardData || window.clipboardData);
+      const pastedText = clipboardData.getData("text/plain");
+      if (!pastedText) return;
+      let rows = pastedText.split(/\r?\n/).filter(row => row.trim() !== "");
+      let data = rows.map(row => row.split("\t"));
+      renderPastedTable(data);
+      pasteArea.innerHTML = "";
+    });
+
+    function renderPastedTable(data) {
+      if (data.length === 0) return;
+
+      headers = data[0];
+      const table = document.createElement("table");
+
+      // 헤더 행 생성
+      const headerRow = document.createElement("tr");
+      headers.forEach((header, index) => {
+        const th = document.createElement("th");
+        th.textContent = header || `열${index + 1}`;
+        headerRow.appendChild(th);
+      });
+      const seqHeader = document.createElement("th");
+      seqHeader.textContent = "순번";
+      headerRow.appendChild(seqHeader);
+      const fileSelectHeader = document.createElement("th");
+      fileSelectHeader.textContent = "파일 선택";
+      headerRow.appendChild(fileSelectHeader);
+      table.appendChild(headerRow);
+
+      // 데이터 행 생성
+      for (let i = 1; i < data.length; i++) {
+        let rowData = data[i];
+        const tr = document.createElement("tr");
+
+        // 헤더 열 개수까지만 데이터 셀 생성
+        for (let j = 0; j < headers.length; j++) {
+          const td = document.createElement("td");
+          td.textContent = rowData[j] || "";
+
+          // '광고내용' 열이 있을 경우, contenteditable 속성 추가
+          if (headers[j] === "광고내용") {
+            td.contentEditable = true;
+            td.style.backgroundColor = "#f0f8ff"; // 사용자가 편집할 수 있음을 시각적으로 나타내기 위해 배경색 추가
+          }
+          tr.appendChild(td);
+        }
+
+        const seqCell = document.createElement("td");
+        seqCell.textContent = i;
+        tr.appendChild(seqCell);
+
+        const fileCell = document.createElement("td");
+        addUploadControl(fileCell, i - 1);
+        tr.appendChild(fileCell);
+        table.appendChild(tr);
+      }
+      tableContainer.innerHTML = "";
+      tableContainer.appendChild(table);
+    }
+
+    function addUploadControl(cell, rowIndex) {
+      cell.style.verticalAlign = "middle";
+      cell.innerHTML = "";
+      const uploadBtn = document.createElement("button");
+      uploadBtn.textContent = "파일 선택";
+      uploadBtn.className = "upload-btn";
+      const fileInput = document.createElement("input");
+      fileInput.type = "file";
+      fileInput.style.display = "none";
+      const previewDiv = document.createElement("div");
+      fileInput.addEventListener("change", (e) => handleFileSelect(e, rowIndex, previewDiv));
+      uploadBtn.addEventListener("click", () => {
+        fileInput.click();
+      });
+      cell.appendChild(uploadBtn);
+      cell.appendChild(fileInput);
+      cell.appendChild(previewDiv);
+
+      cell.addEventListener("dragover", function(e) {
+        e.preventDefault();
+        cell.style.backgroundColor = "#e8f5e9";
+        uploadBtn.style.background = "#ff9800";
+      });
+      cell.addEventListener("dragleave", function(e) {
+        e.preventDefault();
+        cell.style.backgroundColor = "";
+        uploadBtn.style.background = "#2196f3";
+      });
+      cell.addEventListener("drop", function(e) {
+        e.preventDefault();
+        cell.style.backgroundColor = "";
+        uploadBtn.style.background = "#2196f3";
+        const file = e.dataTransfer.files[0];
+        if (file) {
+          const fakeEvent = { target: { files: [file] } };
+          handleFileSelect(fakeEvent, rowIndex, previewDiv);
+        }
+      });
+    }
+
+    function handleFileSelect(event, rowIndex, previewDiv) {
+      const file = event.target.files?.[0];
+      if (!file) return;
+      
+      const tableRows = tableContainer.querySelectorAll("tr");
+      const row = tableRows[rowIndex + 1];
+      const cells = row.querySelectorAll("td");
+      let rowData = [];
+      for (let j = 0; j < cells.length - 2; j++) {
+        rowData.push(cells[j].textContent);
+      }
+      
+      let fileNameParts = [];
+      fileNameParts.push(rowIndex + 1);
+      for (let i = 0; i < 8; i++) {
+        fileNameParts.push(rowData[i] && rowData[i].trim() !== "" ? rowData[i].replace(/,/g, "") : "default");
+      }
+      const extension = file.name.split(".").pop() || "txt";
+      const newName = fileNameParts.join("_") + "." + extension;
+      
+      if (file.type === "application/pdf" || file.name.toLowerCase().endsWith('.pdf')) {
+        const reader = new FileReader();
+        reader.onload = async function(e) {
+          const arrayBuffer = e.target.result;
+          try {
+            const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+            const page = await pdf.getPage(1);
+            const viewport = page.getViewport({ scale: 0.5 });
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            canvas.width = viewport.width;
+            canvas.height = viewport.height;
+            await page.render({ canvasContext: context, viewport: viewport }).promise;
+            canvas.className = "preview-click";
+            canvas.addEventListener("click", () => {
+              openPdfScrollModal(arrayBuffer);
+            });
+            const pageLabel = document.createElement("div");
+            pageLabel.className = "pdf-page-label";
+            pageLabel.textContent = `Page 1 of ${pdf.numPages}`;
+            
+            previewDiv.innerHTML = "";
+            const previewContainer = document.createElement("div");
+            previewContainer.className = "pdf-preview";
+            previewContainer.appendChild(canvas);
+            previewContainer.appendChild(pageLabel);
+            
+            const pageInput = document.createElement("input");
+            pageInput.type = "text";
+            pageInput.placeholder = "예: 1,3,5 (미입력 시 첫 페이지만 변환)";
+            pageInput.className = "pdf-page-input";
+            previewDiv.appendChild(previewContainer);
+            previewDiv.appendChild(pageInput);
+            const renamedPDF = new File([arrayBuffer], newName, { type: file.type });
+            const existing = uploadedFiles.find(obj => obj.row === rowIndex);
+            if (existing) {
+              existing.file = renamedPDF;
+              existing.pageInput = pageInput;
+              existing.arrayBuffer = arrayBuffer;
+            } else {
+              uploadedFiles.push({ row: rowIndex, file: renamedPDF, pageInput: pageInput, arrayBuffer: arrayBuffer });
+            }
+          } catch (error) {
+            console.error("PDF 미리보기 오류:", error);
+            previewDiv.textContent = "PDF 미리보기를 불러오지 못했습니다.";
+          }
+        };
+        reader.readAsArrayBuffer(file);
+      } else if (file.type.startsWith("image/")) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          const img = document.createElement("img");
+          img.src = e.target.result;
+          img.className = "preview-click";
+          img.addEventListener("click", () => {
+            openImageModal(e.target.result);
+          });
+          previewDiv.innerHTML = "";
+          previewDiv.appendChild(img);
+        };
+        reader.readAsDataURL(file);
+        const renamedImage = new File([file], newName, { type: file.type });
+        const existing = uploadedFiles.find(obj => obj.row === rowIndex);
+        if (existing) {
+          existing.file = renamedImage;
+        } else {
+          uploadedFiles.push({ row: rowIndex, file: renamedImage });
+        }
+      } else {
+        previewDiv.textContent = newName;
+        const renamedFile = new File([file], newName, { type: file.type });
+        const existing = uploadedFiles.find(obj => obj.row === rowIndex);
+        if (existing) {
+          existing.file = renamedFile;
+        } else {
+          uploadedFiles.push({ row: rowIndex, file: renamedFile });
+        }
+      }
+      const cell = previewDiv.parentElement;
+      const btn = cell.querySelector(".upload-btn");
+      if (btn) {
+        btn.textContent = "업로드 완료";
+      }
+      downloadZipBtn.style.display = "block";
+    }
+
+    downloadZipBtn.addEventListener("click", async () => {
+      const zip = new JSZip();
+      for (let obj of uploadedFiles) {
+        if (obj.file.type === "application/pdf" || obj.file.name.toLowerCase().endsWith('.pdf')) {
+          const arrayBuffer = obj.arrayBuffer;
+          const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+          const numPages = pdf.numPages;
+          let pagesToConvert = [];
+          const pageInputValue = obj.pageInput ? obj.pageInput.value.trim() : "";
+          if (!pageInputValue) {
+            pagesToConvert.push(1);
+          } else {
+            pagesToConvert = pageInputValue.split(',')
+              .map(num => parseInt(num.trim()))
+              .filter(num => !isNaN(num) && num >= 1 && num <= numPages);
+            if (pagesToConvert.length === 0) {
+              pagesToConvert.push(1);
+            }
+          }
+          const baseName = obj.file.name.split('.pdf')[0];
+          for (let pageNum of pagesToConvert) {
+            if (pageNum > numPages) continue;
+            const page = await pdf.getPage(pageNum);
+            const viewport = page.getViewport({ scale: 2.0 });
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            canvas.width = viewport.width;
+            canvas.height = viewport.height;
+            await page.render({ canvasContext: context, viewport: viewport }).promise;
+            const jpgDataUrl = canvas.toDataURL('image/jpeg', 0.95);
+            const byteString = atob(jpgDataUrl.split(',')[1]);
+            const mimeString = jpgDataUrl.split(',')[0].split(':')[1].split(';')[0];
+            const ab = new ArrayBuffer(byteString.length);
+            const ia = new Uint8Array(ab);
+            for (let i = 0; i < byteString.length; i++) {
+              ia[i] = byteString.charCodeAt(i);
+            }
+            const blob = new Blob([ab], { type: mimeString });
+            zip.file(`${baseName}_page${pageNum}.jpg`, blob);
+          }
+        } else {
+          zip.file(obj.file.name, obj.file);
+        }
+      }
+      const content = await zip.generateAsync({ type: "blob" });
+      saveAs(content, "정부광고DEV_파일명 변경.zip");
+      uploadedFiles = [];
+      downloadZipBtn.style.display = "none";
+      const uploadButtons = document.querySelectorAll(".upload-btn");
+      uploadButtons.forEach(btn => btn.textContent = "파일 선택");
+      const previews = document.querySelectorAll(".preview-click, .pdf-preview, input.pdf-page-input");
+      previews.forEach(preview => preview.remove());
+    });
+  </script>
+</body>
+</html>
