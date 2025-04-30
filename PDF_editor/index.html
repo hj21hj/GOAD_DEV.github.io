@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>정부광고DEV_PDF에디터</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <h1>정부광고DEV_PDF에디터</h1>
+  <div class="info-box">
+    정부광고DEV(정부광고 Develope)는 정부광고 업무 효율과 생산성을 효과적으로 개선하기 위한 광고운영국 프로젝트입니다.<br>
+    본 서비스 <strong>정부광고DEV_PDF에디터</strong>는 PDF.js와 PDF-LIB 기반의 클라이언트 사이드 PDF 편집기입니다.<br>
+    많은 관심과 이용 부탁드립니다.<br>
+    ㅇ 문의: 정동욱 팀장(841), 황재 과장(847)
+  </div>
+
+  <input type="file" id="file-input" accept="application/pdf">
+  <canvas id="pdf-canvas"></canvas>
+  <div class="controls">
+    <label for="annotation">추가할 텍스트:</label>
+    <input type="text" id="annotation" placeholder="텍스트 입력">
+    <button id="add-text">텍스트 추가</button>
+    <button id="download-pdf">PDF 다운로드</button>
+  </div>
+
+  <!-- PDF.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js"></script>
+  <!-- PDF-LIB -->
+  <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
+  <!-- App Script -->
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,27 @@
+/* styles.css */
+body {
+  font-family: Arial, sans-serif;
+  padding: 20px;
+}
+
+.info-box {
+  border: 1px solid #0077cc;
+  background: #f0f8ff;
+  padding: 10px;
+  margin-bottom: 15px;
+}
+
+#pdf-canvas {
+  border: 1px solid #ccc;
+  margin-top: 10px;
+  width: 100%;
+  max-width: 800px;
+}
+
+.controls {
+  margin-top: 15px;
+}
+
+.controls > * {
+  margin-right: 10px;
+}
